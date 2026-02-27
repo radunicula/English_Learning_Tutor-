@@ -76,7 +76,7 @@ def create_session(level: str = "beginner") -> int:
     with get_connection() as conn:
         cur = conn.execute(
             "INSERT INTO sessions (created_at, level, total_messages) VALUES (?, ?, 0)",
-            (datetime.utcnow().isoformat(),  level),
+            (datetime.utcnow().isoformat(), level),
         )
         session_id = cur.lastrowid
         conn.execute(
@@ -176,10 +176,6 @@ def update_stats(session_id: int, accuracy_pct: float, words_learned: int, corre
                WHERE session_id = ?""",
             (accuracy_pct, words_learned, corrections_count, session_id),
         )
-        conn.execute(
-            "UPDATE sessions SET level = (SELECT level FROM sessions WHERE id = ?) WHERE id = ?",
-            (session_id, session_id),
-        )
 
 
 def get_stats(session_id: int) -> sqlite3.Row | None:
@@ -209,3 +205,12 @@ def update_session_level(session_id: int, level: str) -> None:
             "UPDATE sessions SET level = ? WHERE id = ?",
             (level, session_id),
         )
+
+
+def get_vocabulary(session_id: int) -> list[str]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT word FROM vocabulary WHERE session_id = ?", (session_id,)
+        ).fetchall()
+        return [r["word"] for r in rows]
+

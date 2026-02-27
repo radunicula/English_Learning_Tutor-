@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
         self._chat.add_message(error_msg, "assistant")
 
     def _load_history(self):
-        from db.database import get_messages, get_goals, get_stats
+        from db.database import get_messages, get_goals, get_stats, get_vocabulary
 
         rows = get_messages(self._session_id)
         for row in rows:
@@ -244,8 +244,9 @@ class MainWindow(QMainWindow):
         stats = get_stats(self._session_id)
         if stats:
             self._corrections_count = stats["corrections_count"]
-            for _ in range(stats["words_learned"]):
-                self._words_learned.add(f"__word_{_}__")
+
+        words = get_vocabulary(self._session_id)
+        self._words_learned = set(words)
 
     def _refresh_stats(self):
         from db.database import get_stats, get_cumulative_stats
