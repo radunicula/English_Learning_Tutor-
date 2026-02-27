@@ -56,7 +56,7 @@ class TutorWorker(QThread):
 
     def __init__(self, history: list[dict], parent=None):
         super().__init__(parent)
-        self._history = history
+        self._history = history[-20:]
 
     def run(self) -> None:
         try:
@@ -71,7 +71,7 @@ class TutorWorker(QThread):
 
             client = anthropic.Anthropic(api_key=api_key)
             message = client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-20250514",
                 max_tokens=1024,
                 system=SYSTEM_PROMPT,
                 messages=self._history,

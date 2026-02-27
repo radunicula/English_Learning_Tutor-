@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         if resume:
             self._load_history()
         else:
+            self._sidebar._feedback_tab.reset()
             self._chat.add_message(
                 "Hello! I'm Alex, your English tutor. How are you today? "
                 "Feel free to write in English — I'm here to help you practice!",
@@ -230,7 +231,7 @@ class MainWindow(QMainWindow):
         self._chat.add_message(error_msg, "assistant")
 
     def _load_history(self):
-        from db.database import get_messages, get_goals, get_stats, get_vocabulary
+        from db.database import get_messages, get_goals, get_stats, get_vocabulary, get_session_level
 
         rows = get_messages(self._session_id)
         for row in rows:
@@ -247,6 +248,9 @@ class MainWindow(QMainWindow):
 
         words = get_vocabulary(self._session_id)
         self._words_learned = set(words)
+
+        level = get_session_level(self._session_id)
+        self._update_level_badge(level)
 
     def _refresh_stats(self):
         from db.database import get_stats, get_cumulative_stats
