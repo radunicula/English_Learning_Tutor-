@@ -86,6 +86,11 @@ class FeedbackTab(QWidget):
         self._get_body(self._correction_frame).setText(correction or "—")
         self._get_body(self._tip_frame).setText(tip or "—")
 
+    def reset(self):
+        self._get_body(self._positive_frame).setText("—")
+        self._get_body(self._correction_frame).setText("—")
+        self._get_body(self._tip_frame).setText("—")
+
 
 class GoalsTab(QWidget):
     goals_changed = pyqtSignal()
@@ -218,9 +223,11 @@ class ProgressTab(QWidget):
         self._cum_sessions = self._make_stat("Sesiuni: 0")
         self._cum_words = self._make_stat("Cuvinte totale: 0")
         self._cum_corrections = self._make_stat("Corecții totale: 0")
+        self._cum_accuracy = self._make_stat("Acuratețe medie: 0.0%")
         layout.addWidget(self._cum_sessions)
         layout.addWidget(self._cum_words)
         layout.addWidget(self._cum_corrections)
+        layout.addWidget(self._cum_accuracy)
 
         layout.addStretch()
 
@@ -266,12 +273,13 @@ class ProgressTab(QWidget):
         self._sess_corrections.setText(f"Corecții: {corrections}")
         self._sess_words.setText(f"Cuvinte noi: {words}")
         self._grammar_bar.setValue(int(accuracy))
-        self._vocab_bar.setValue(min(100, words * 5))
+        self._vocab_bar.setValue(min(100, int(words / 50 * 100)))
 
     def update_cumulative_stats(self, sessions: int, total_words: int, total_corrections: int, avg_accuracy: float):
         self._cum_sessions.setText(f"Sesiuni: {sessions}")
         self._cum_words.setText(f"Cuvinte totale: {total_words}")
         self._cum_corrections.setText(f"Corecții totale: {total_corrections}")
+        self._cum_accuracy.setText(f"Acuratețe medie: {avg_accuracy:.1f}%")
 
 
 class SidebarWidget(QWidget):

@@ -53,6 +53,9 @@ def init_db() -> None:
                 FOREIGN KEY (session_id) REFERENCES sessions(id)
             );
 
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_vocab_word_session
+                ON vocabulary (word, session_id);
+
             CREATE TABLE IF NOT EXISTS goals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 goal_text TEXT NOT NULL,
@@ -89,7 +92,7 @@ def create_session(level: str = "beginner") -> int:
 def get_last_session() -> sqlite3.Row | None:
     with get_connection() as conn:
         return conn.execute(
-            "SELECT * FROM sessions ORDER BY id DESC LIMIT 1"
+            "SELECT * FROM sessions WHERE total_messages > 0 ORDER BY id DESC LIMIT 1"
         ).fetchone()
 
 
@@ -120,7 +123,7 @@ def save_vocabulary(words: list[str], session_id: int) -> None:
     now = datetime.utcnow().isoformat()
     with get_connection() as conn:
         conn.executemany(
-            "INSERT INTO vocabulary (word, first_seen, session_id) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO vocabulary (word, first_seen, session_id) VALUES (?, ?, ?)",
             [(w, now, session_id) for w in words],
         )
 
@@ -205,6 +208,14 @@ def update_session_level(session_id: int, level: str) -> None:
             "UPDATE sessions SET level = ? WHERE id = ?",
             (level, session_id),
         )
+
+
+def get_session_level(session_id: int) -> str:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT level FROM sessions WHERE id = ?", (session_id,)
+        ).fetchone()
+        return row["level"] if row else "beginner"
 
 
 def get_vocabulary(session_id: int) -> list[str]:
